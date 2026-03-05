@@ -36,6 +36,18 @@
             box-sizing: border-box;
         }
 
+        /* Barra de Menu Retraída (Mobile) */
+        #mobile-menu-bar {
+            display: none;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px;
+            justify-content: center;
+            border-bottom: 4px solid #000;
+            z-index: 1001;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .nav-btn {
             background: #444; 
             color: white; 
@@ -46,7 +58,6 @@
             text-transform: uppercase; 
             transition: all 0.2s; 
             border-radius: 5px;
-            /* MODIFICAÇÃO: flex-grow em 0 e largura fixa para desktop */
             flex: 0 0 135px;
             width: 135px;
             height: 45px;
@@ -122,7 +133,6 @@
             transform-origin: 0 0;
         }
 		
-		/* Estilos para o Modal de Senha */
 		#password-modal {
 			display: none;
 			position: fixed;
@@ -184,30 +194,22 @@
 			border-radius: 5px;
 			font-weight: bold;
 		}
+
+		.btn-confirm { background: var(--primary); color: white; }
+		.btn-cancel { background: #666; color: white; }
 		
-		/* Correção para Desktop (Opera GX e outros) */
 		@media (min-width: 769px) {
 			body {
 				zoom: 0.9;
-				/* Garante que o conteúdo comece no topo esquerdo */
 				transform-origin: top left; 
-				/* Expande a largura para que os 90% ocupem 100% da visão real */
 				width: 111.11vw; 
 				height: 111.11vh;
 				margin: 0;
 				padding: 0;
 			}
-
-			header {
-				/* Garante que a barra preta superior se estenda por toda a nova largura */
-				width: 100%; 
-			}
+			header { width: 100%; }
 		}
 
-		.btn-confirm { background: var(--primary); color: white; }
-		.btn-cancel { background: #666; color: white; }
-
-        /* AJUSTES MOBILE */
         @media (max-width: 768px) {
             header {
                 padding: 5px;
@@ -218,10 +220,19 @@
 
             .nav-btn {
                 font-size: 11px;
-                /* MODIFICAÇÃO: Travando largura em 30% para manter 3 colunas fixas */
                 flex: 0 0 30%;
                 width: 30%;
                 height: 40px;
+            }
+
+            /* Esconde as abas quando o modo retrátil está ativo */
+            header.mobile-retracted {
+                display: none;
+            }
+
+            /* Mostra a barra do botão MENU quando retraído */
+            #mobile-menu-bar.active {
+                display: flex;
             }
 
             #frame-caminhos.active {
@@ -248,13 +259,17 @@
     </div>
 </div>
 
-<header>
+<div id="mobile-menu-bar">
+    <button class="nav-btn" onclick="openMobileMenu()">MENU</button>
+</div>
+
+<header id="main-header">
     <button class="nav-btn active" onclick="showCommand('welcome', this)">Início</button>
     <button class="nav-btn" onclick="showCommand('regras', this)">Regras</button>
     <button class="nav-btn" onclick="showCommand('pastas', this)">Pastas</button>
 	<button class="nav-btn" onclick="showCommand('banco-all', this)">Banco de Dados</button>
     <button class="nav-btn" onclick="showCommand('mapas', this)">Mapas</button>
-    <button class="nav-btn" onclick="showCommand('caminhos', this)">Caminhos</button>
+	<button class="nav-btn" onclick="showCommand('caminhos', this)">Caminhos</button>
 	<button class="nav-btn" onclick="showCommand('roletas', this)">Roletas</button>
     <button class="nav-btn" onclick="showCommand('recursos', this)">Recursos</button>
     <button class="nav-btn" onclick="showCommand('placares', this)">Placares</button>
@@ -274,7 +289,7 @@
     <iframe id="frame-pastas" src="Pastas - Datamining.html"></iframe>
 	<iframe id="frame-banco-all" src="Banco de Dados - All - Datamining.html"></iframe>
     <iframe id="frame-mapas" src="Mapas - Datamining.html"></iframe>
-    <iframe id="frame-caminhos" src="Caminhos - Datamining.html"></iframe>
+	<iframe id="frame-caminhos" src="Caminhos - Datamining.html"></iframe>
 	<iframe id="frame-roletas" src="Roletas - Datamining.html"></iframe>
     <iframe id="frame-recursos" src="Recursos - Datamining.html"></iframe>
     <iframe id="frame-placares" src="Placares Secretos - Datamining.html"></iframe>
@@ -284,7 +299,7 @@
 <script>
     let recursosAutorizados = false;
     const SENHA_RECURSOS = "16053153#";
-    let pendingBtn = null; // Guarda o botão clicado para ativar depois da senha
+    let pendingBtn = null; 
 
     function showCommand(id, btn) {
         if (id === 'recursos' && !recursosAutorizados) {
@@ -294,19 +309,34 @@
             return;
         }
 
-        // Lógica de navegação
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
         document.getElementById('welcome').classList.remove('active');
         document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
 
+        const header = document.getElementById('main-header');
+        const mobileBar = document.getElementById('mobile-menu-bar');
+
         if (id === 'welcome') {
             document.getElementById('welcome').classList.add('active');
+            header.classList.remove('mobile-retracted');
+            mobileBar.classList.remove('active');
         } else {
             const frame = document.getElementById('frame-' + id);
             if(frame) frame.classList.add('active');
+            
+            // Retrai o menu no mobile
+            if (window.innerWidth <= 768) {
+                header.classList.add('mobile-retracted');
+                mobileBar.classList.add('active');
+            }
         }
+    }
+
+    function openMobileMenu() {
+        document.getElementById('main-header').classList.remove('mobile-retracted');
+        document.getElementById('mobile-menu-bar').classList.remove('active');
     }
 
     function checkPassword() {
@@ -338,7 +368,6 @@
         document.getElementById('pass-input').value = "";
     }
 
-    // Atalho: apertar Enter para confirmar a senha
     document.getElementById('pass-input')?.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') checkPassword();
     });
